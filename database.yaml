@@ -1,0 +1,35 @@
+0:
+  flow_meter: 330A0013FIC.PIDA.PV
+  train_test_split_date: 2024-08-01
+  anomaly_starts: 2024-08-20
+  anomaly_ends: null
+1:
+  flow_meter: 330A0433FIC.PIDA.PV
+  train_test_split_date: 2024-01-01
+  anomaly_starts: 2024-03-07 10:00
+  anomaly_ends: 2024-03-19 14:10
+2:
+  flow_meter: 330A0127FI.DACA.PV
+  train_test_split_date: 2023-11-01
+  anomaly_starts: 2024-01-16 12:00
+  anomaly_ends: null
+3:
+  flow_meter: 411A0039FIC.PIDA.PV
+  train_test_split_date: 2023-09-01
+  anomaly_starts: 2023-11-16 21:20
+  anomaly_ends: null
+4:
+  flow_meter: 411A0075FIC.PIDA.PV
+  train_test_split_date: 2023-09-01
+  anomaly_starts: 2023-11-16 21:20
+  anomaly_ends: null
+5:
+  flow_meter: 411A0078FIC.PIDA.PV
+  train_test_split_date: 2023-11-01
+  anomaly_starts: 2024-02-12 09:00
+  anomaly_ends: null
+6:
+  flow_meter: 330A0074FIC.DACA.PV
+  train_test_split_date: 2024-11-01
+  anomaly_starts: 2024-11-18 09:00
+  anomaly_ends: null

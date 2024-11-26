@@ -1,0 +1,18 @@
+detector:
+  window: 500
+  correlation_threshold: 0.5
+
+signals_to_use:
+  - signal
+  - control
+
+preprocessor:
+  steps:
+
+#    - type: FilterParadasStep
+#      filter_paradas: 30
+#      filter_on_control: true
+#    - type: SmoothSignalStep
+#      small_smooth_win: 50
+#      large_smooth_win: 3000
+#      smooth_only_signal: false
