@@ -21,6 +21,12 @@ class DataLoader:
 
         return self.load_data(signal_id, control_id, start, end)
 
+    def load_test_data(self, signal_id: str):
+        control_id = self.config.loc[signal_id]['ID_CONTROL']
+        start = self.config.loc[signal_id]['TRAIN_ENDS']
+
+        return self.load_data(signal_id, control_id, start, None)
+
     def load_new_data(self, signal_id, current_time, window_in_hours):
         control_id = self.config.loc[signal_id]['ID_CONTROL']
 
@@ -47,7 +53,7 @@ class DataLoader:
         :param signal_id:
         :param control_id:
         :param date_start:
-        :param date_end:
+        :param date_end: if None, load all data from date_start to today
         :return: A dataframe with the index as the timestamp and the columns 'signal' and 'control' (if available)
         """
 
@@ -63,7 +69,7 @@ class DataLoader:
 
         :param signal_id: id of the signal to load
         :param date_start: training start date
-        :param date_end: training end date
+        :param date_end: training end date. If None, load all data from date_start to the end of the file
         :return: A dataframe with the index as the timestamp and the columns 'signal' and 'control' (if available)
         """
         file_path = f"{self.offline_root_dir}/all_{signal_id}.csv"
@@ -78,12 +84,13 @@ class DataLoader:
         series = series.sort_index()
 
         # Check if the data is enough to cover the requested time range
-        if series.index[-1] < pd.to_datetime(date_end):
+        if date_end and series.index[-1] < pd.to_datetime(date_end):
             logger.error(f"Error loading data. Not enough data in {file_path} to cover the requested time range")
             return None
 
         series = series[series.index > date_start]
-        series = series[series.index <= date_end]
+        if date_end is not None:
+            series = series[series.index <= date_end]
 
         return series
 

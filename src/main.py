@@ -19,6 +19,7 @@ logging.getLogger('apscheduler').setLevel(logging.WARNING)
 
 # Global counter for the number of prediction updates
 update_counter = 0
+processed = {}
 
 
 def schedule_predictions(detectors, data_loader, offline):
@@ -40,6 +41,25 @@ def schedule_predictions(detectors, data_loader, offline):
     scheduler.add_job(update_predictions, 'interval', minutes=job_interval)
     scheduler.start()
 
+def schedule_predictions_on_complete_series(detectors, data_loader):
+    scheduler = BackgroundScheduler()
+    job_interval = OFFLINE_PREDICTION_UPDATE_INTERVAL_IN_MINUTES
+
+    def update_predictions():
+        global processed
+        for signal in detectors.keys():
+            if processed[signal]:
+                continue
+            logger.info(f"Performing anomaly detection on signal {signal}")
+            detector = detectors[signal]
+            test_data = data_loader.load_test_data(signal)
+            results = detector.predict_all(test_data)
+            if results and results['detection'].any():
+                logger.warning(f"Anomaly detected for signal {signal}")
+            processed[signal] = True
+
+    scheduler.add_job(update_predictions, 'interval', minutes=job_interval)
+    scheduler.start()
 
 def main(offline, flow_meters_info_csv_path):
     signal_options = get_signal_options()
@@ -67,7 +87,12 @@ def main(offline, flow_meters_info_csv_path):
         figure = detector.plot(title=f"{selected_signal} (refresh {n})", show=False)
         return figure, dash_handler.get_log()
 
-    schedule_predictions(detectors, data_loader, offline)
+    # schedule_predictions(detectors, data_loader, offline)
+
+    global processed
+    processed = {key: False for key in detectors.keys()}
+    schedule_predictions_on_complete_series(detectors, data_loader)
+
     app.run_server(debug=True, use_reloader=False)
 
 

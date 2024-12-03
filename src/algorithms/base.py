@@ -134,19 +134,19 @@ class AnomalyDetector(ABC):
             )
 
         # Add Anomalies trace if available
-        # filtered_series = series.loc[result.index, 'signal']
-        # if 'detection' in result.keys():
-        #     anomalies = result['detection']
-        #     fig.add_trace(
-        #         go.Scatter(
-        #             x=result.index[anomalies],
-        #             y=filtered_series.values[anomalies],
-        #             mode='markers',
-        #             name='Anomalies',
-        #             marker=dict(color='#d62728'),
-        #             yaxis='y1'
-        #         )
-        #     )
+        filtered_series = series.loc[result.index, 'signal']
+        if 'detection' in result.keys():
+            anomalies = result['detection']
+            fig.add_trace(
+                go.Scatter(
+                    x=result.index[anomalies],
+                    y=filtered_series.values[anomalies],
+                    mode='markers',
+                    name='Anomalies',
+                    marker=dict(color='#d62728'),
+                    yaxis='y1'
+                )
+            )
 
         # Update layout with titles and labels
         fig.update_layout(
