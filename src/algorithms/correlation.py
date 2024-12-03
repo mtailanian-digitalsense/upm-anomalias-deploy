@@ -10,28 +10,11 @@ class CorrelationDetector(AnomalyDetector):
 
     def __init__(self, config_path, **kwargs):
         super().__init__(config_path)
-        self.sampling_step_in_minutes = self.config['detector']['sampling_step_in_minutes']
-        self.window_in_hours = self.config['detector']['window_in_hours']
-        self.window_in_samples = int(self.window_in_hours * 60 / self.sampling_step_in_minutes)
+        self.needed_history_in_hours = self.config['detector']['window_in_hours']
         self.threshold = self.config['detector']['correlation_threshold']
 
         self.complete_series = pd.DataFrame()
-        # self.results = pd.DataFrame(index=['time_index'], columns=['anomaly_score', 'detection'])
         self.results = pd.DataFrame()
-
-    def _compute_abs_correlation(self, series):
-        corr = np.abs(series['signal'].rolling(window=self.window_in_samples).corr(series['control']))
-        corr = corr.fillna(1)
-        corr = corr.replace([np.inf, -np.inf], 1)
-        corr = np.abs(corr)
-
-        corr = pd.DataFrame(corr, columns=['correlation'])
-        corr['date'] = pd.to_datetime(series.index)
-        return TimeSeries.from_dataframe(
-            corr,
-            time_col='date',
-            value_cols='correlation'
-        )
 
     def fit(self, series, **kwargs):
         self.complete_series = series

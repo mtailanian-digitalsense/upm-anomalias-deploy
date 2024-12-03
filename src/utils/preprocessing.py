@@ -62,29 +62,20 @@ class PreprocessingStep:
 
 
 @register_step
-class FilterParadasStep(PreprocessingStep):
-    def __init__(self, filter_paradas, filter_on_control, filter_on_test):
-        self.filter_paradas = filter_paradas
+class FilterDowntimeStep(PreprocessingStep):
+    def __init__(self, threshold, filter_on_control, filter_on_test):
+        self.threshold = threshold
         self.filter_on_control = filter_on_control
         self.filter_on_test = filter_on_test
 
     def process(self, series, train=False):
-        if train:
+        if train or (not train and self.filter_on_test):
             if self.filter_on_control and 'control' in series.columns:
-                return series[series['control'] > self.filter_paradas]
+                return series[series['control'] > self.threshold]
             elif self.filter_on_control and 'control' not in series.columns:
                 return series[series['signal'] > 5] # TODO: choose a threshold for the signal
             else:
-                return series[series['signal'] > self.filter_paradas]
-
-        elif self.filter_on_test:
-            if self.filter_on_control and 'control' in series.columns:
-                return series[series['control'] > self.filter_paradas]
-            elif self.filter_on_control and 'control' not in series.columns:
-                return series[series['signal'] > 5] # TODO: choose a threshold for the signal
-            else:
-                return series[series['signal'] > self.filter_paradas]
-                
+                return series[series['signal'] > self.threshold]
         return series
 
 @register_step
@@ -93,7 +84,7 @@ class DecimateStep(PreprocessingStep):
         self.decimate = decimate
 
     def process(self, series, train=False):
-        freq = str(self.freq*self.decimate) + 'T'
+        freq = str(self.freq * self.decimate) + 'T'
         return series.resample(freq).mean()
 
 @register_step
@@ -116,9 +107,9 @@ class SmoothSignalStep(PreprocessingStep):
 
 @register_step
 class NormalizeStep(PreprocessingStep):
-    def __init__(self, q_porcentage_small=0.01, q_porcentage_large=0.99):
-        self.q_percentage_small = q_porcentage_small
-        self.q_percentage_large = q_porcentage_large
+    def __init__(self, q_percentage_small=0.01, q_percentage_large=0.99):
+        self.q_percentage_small = q_percentage_small
+        self.q_percentage_large = q_percentage_large
         self.q_small, self.q_large = None, None
 
     def process(self, series, train=False):

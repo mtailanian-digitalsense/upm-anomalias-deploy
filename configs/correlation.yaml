@@ -1,5 +1,4 @@
 detector:
-  sampling_step_in_minutes: 10
   window_in_hours: 72
   correlation_threshold: 0.5
 

@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from dash.dependencies import Input, Output
 
 from src.algorithms.correlation import CorrelationDetector
+from src.algorithms.kmeans_darts import KMeansDartsDetector
 from src.dataloader import DataLoader
 from src.dashboard import get_signal_options, app
 from src.utils.logger_config import logger, dash_handler
@@ -30,7 +31,7 @@ def schedule_predictions(detectors, data_loader, offline):
         for signal in detectors.keys():
             detector = detectors[signal]
             t = get_current_time(offline, data_loader.config.loc[signal]['TRAIN_ENDS'], update_counter)
-            new_data = data_loader.load_new_data(signal, t, detector.window_in_hours)
+            new_data = data_loader.load_new_data(signal, t, detector.needed_history_in_hours)
             results = detector.predict(new_data)
             # logger.info(f"Predictions updated at {t} for signal {signal}")
             if results and results['detection']:
@@ -47,7 +48,10 @@ def main(offline, flow_meters_info_csv_path):
     detectors = {}
     for signal in signal_options:
         logger.info(f"Initializing (training) detector for {signal['value']}")
-        detector = CorrelationDetector(config_path="configs/correlation.yaml")
+
+        # detector = CorrelationDetector(config_path="configs/correlation.yaml")
+        detector = KMeansDartsDetector(config_path="configs/kmeans_darts.yaml")
+
         train_df = data_loader.load_train_data(signal['value'])
         detector.fit(train_df)
         detectors[signal['value']] = detector
@@ -61,12 +65,6 @@ def main(offline, flow_meters_info_csv_path):
     def refresh_chart(n, selected_signal):
         detector = detectors[selected_signal]
         figure = detector.plot(title=f"{selected_signal} (refresh {n})", show=False)
-
-        # Logs
-        # logger.info(f"Plot updated at {t} (n={n})")
-        # if results['detection']:
-        #     logger.info(f"Anomaly detected at {results['time_index']} for signal {selected_signal}")
-
         return figure, dash_handler.get_log()
 
     schedule_predictions(detectors, data_loader, offline)
