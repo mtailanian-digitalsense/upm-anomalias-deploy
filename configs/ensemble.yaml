@@ -1,0 +1,16 @@
+detector:
+#  operation: sum
+#  normalization: Standard
+  detection_quantile: 0.99
+  smoothing_window_before_combination_soft_version: 6
+  smoothing_window_before_combination_hard_version: 24
+  sigmoide_temperature_soft_version: 2
+  sigmoide_temperature_hard_version: 10
+  smoothing_window_after_combination: 72  # 12
+  min_length_pos_processing: 24  # 144
+  detection_threshold: 0.80
+
+signals_to_use:
+
+preprocessor:
+  steps:

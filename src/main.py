@@ -14,12 +14,13 @@ from src.algorithms.knn import KNNDetector
 from src.algorithms.kmeans_darts import KMeansDartsDetector
 from src.algorithms.regressor_knn import KNNRegressorDetector
 from src.algorithms.xgb_darts import XGBDartsDetector
-from src.algorithms.fft import FFTDetector
+# from src.algorithms.fft import FFTDetector
+from src.algorithms.ensemble import EnsembleDetector
 
 from src.dataloader import DataLoader
 from src.dashboard import get_signal_options, app
 from src.utils.logger_config import logger, dash_handler
-from src.constants import RUN_PREDICTIONS_EVERY_H, UPDATE_DASHBOARD_EVERY_S, SIMULATION_TIME_D
+from src.constants import RUN_PREDICTIONS_EVERY_H, SIMULATION_TIME_D
 
 # Set APScheduler logging level to WARNING
 logging.getLogger('apscheduler').setLevel(logging.ERROR)
@@ -38,7 +39,8 @@ def initialize_and_train_detectors(signal_options, data_loader, detectors):
         # detector = KMeansDartsDetector(config_path="configs/kmeans_darts.yaml")
         # detector = KNNRegressorDetector(config_path="configs/regressor_knn.yaml")
         # detector = XGBDartsDetector(config_path="configs/xgb_darts.yaml")
-        detector = FFTDetector(config_path="configs/fft.yaml")
+        # detector = FFTDetector(config_path="configs/fft.yaml")
+        detector = EnsembleDetector(config_dir="configs")
 
         train_df = data_loader.load_train_data(signal['value'])
         detector.fit(train_df)

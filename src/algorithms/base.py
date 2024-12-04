@@ -68,7 +68,7 @@ class AnomalyDetector(ABC):
         raise NotImplementedError
 
     def predict(self, series, **kwargs):
-        if (series is None) or (len(series) == 0) or (not 'control' in series.columns):
+        if (series is None) or (len(series) == 0):  # or (not 'control' in series.columns):
             return
 
         # Append new data to self.complete_series
@@ -77,11 +77,12 @@ class AnomalyDetector(ABC):
 
         time_index, anomaly_score, detection = self._predict(series, **kwargs)
 
-        self.results = pd.DataFrame({
-            'time_index': time_index,
-            'anomaly_score': anomaly_score,
-            'detection': detection
-        }).set_index('time_index')
+        if time_index is not None:
+            self.results = pd.DataFrame({
+                'time_index': time_index,
+                'anomaly_score': anomaly_score,
+                'detection': detection
+            }).set_index('time_index')
 
     @abstractmethod
     def _predict(self, series, **kwargs):
