@@ -1,0 +1,17 @@
+detector:
+  n_neighbors: 5
+  n_sigmas_threshold: 2
+
+signals_to_use:
+  - signal
+  - control
+
+preprocessor:
+  steps:
+    - type: FilterDowntimeStep
+      threshold: 30
+      filter_on_control: true
+      filter_on_test: true
+    - type: SmoothSignalStep
+      small_smooth_win: 50
+      large_smooth_win: 3000

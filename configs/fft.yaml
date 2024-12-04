@@ -1,0 +1,18 @@
+detector:
+  ifft_parameters: 3
+  local_neighbor_window: 101
+  local_outlier_threshold: 0.2
+  max_region_size: 200
+  max_sign_change_distance: 100
+  filter_type: HPF # Options: LPF, BPF, HPF
+  detection_quantile: 0.95
+
+signals_to_use:
+  - signal
+
+preprocessor:
+  steps:
+    - type: FilterDowntimeStep
+      threshold: 30
+      filter_on_control: true
+      filter_on_test: true

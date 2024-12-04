@@ -22,6 +22,9 @@ class AnomalyDetector(ABC):
         # elif torch.backends.mps.is_available():
         #     device = "mps"
 
+        self.complete_series = pd.DataFrame()
+        self.results = pd.DataFrame()
+
         self.config = self._load_config(config_path)
         self.signals_to_use = self.config['signals_to_use']
         self.pre_processor = self._initialize_preprocessor()
@@ -56,12 +59,37 @@ class AnomalyDetector(ABC):
 
         return self.pre_processor(series, self.signals_to_use, train)
 
-    @abstractmethod
-    def fit(self, series, target=None, **kwargs):
-        raise NotImplementedError
+    def fit(self, series, **kwargs):
+        self.complete_series = series
+        return self._fit(series, **kwargs)
 
     @abstractmethod
-    def predict(self, series, target=None, **kwargs):
+    def _fit(self, series, **kwargs):
+        raise NotImplementedError
+
+    def predict(self, series, **kwargs):
+        if (series is None) or (len(series) == 0) or (not 'control' in series.columns):
+            return
+
+        # Append new data to self.complete_series
+        new_series = series[series.index > self.complete_series.index[-1]]
+        self.complete_series = pd.concat([self.complete_series, new_series])
+
+        time_index, anomaly_score, detection = self._predict(series, **kwargs)
+
+        self.results = pd.DataFrame({
+            'time_index': time_index,
+            'anomaly_score': anomaly_score,
+            'detection': detection
+        }).set_index('time_index')
+
+    @abstractmethod
+    def _predict(self, series, **kwargs):
+        """
+        This method should return the time index, anomaly score, and the detection, for the given series
+        :param series: the series to predict
+        :return: time_index, anomaly_score, detection
+        """
         raise NotImplementedError
 
     def evaluate(self, series, results):
@@ -99,7 +127,10 @@ class AnomalyDetector(ABC):
         result_detector = pd.DataFrame(data=metric_detector, index=['detection'])
         return result, result_detector
 
-    def plot(self, series, result, title, show=True, save_path=None, **kwargs):
+    def plot(self, title, show=True, save_path=None, **kwargs):
+
+        series = self.complete_series
+        result = self.results
 
         fig = go.Figure()
 
@@ -125,7 +156,7 @@ class AnomalyDetector(ABC):
                 go.Scatter(
                     x=result.index,
                     y=result['anomaly_score'],
-                    mode='lines+markers',
+                    mode='lines',
                     name='Anomaly Score',
                     line=dict(color='#ff7f0e'),
                     yaxis='y2',
@@ -134,19 +165,19 @@ class AnomalyDetector(ABC):
             )
 
         # Add Anomalies trace if available
-        # filtered_series = series.loc[result.index, 'signal']
-        # if 'detection' in result.keys():
-        #     anomalies = result['detection']
-        #     fig.add_trace(
-        #         go.Scatter(
-        #             x=result.index[anomalies],
-        #             y=filtered_series.values[anomalies],
-        #             mode='markers',
-        #             name='Anomalies',
-        #             marker=dict(color='#d62728'),
-        #             yaxis='y1'
-        #         )
-        #     )
+        filtered_series = series.loc[result.index, 'signal']
+        if 'detection' in result.keys():
+            anomalies = result['detection']
+            fig.add_trace(
+                go.Scatter(
+                    x=result.index[anomalies],
+                    y=filtered_series.values[anomalies],
+                    mode='markers',
+                    name='Anomalies',
+                    marker=dict(color='#d62728'),
+                    yaxis='y1'
+                )
+            )
 
         # Update layout with titles and labels
         fig.update_layout(

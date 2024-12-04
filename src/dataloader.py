@@ -8,11 +8,15 @@ from src.utils.correlation_computation import compute_rolling_correlation_pd
 
 class DataLoader:
     def __init__(self, offline, flow_meters_info_csv_path, offline_root_dir="../data/flow-meters"):
-        self.offline = offline
-        self.offline_root_dir = offline_root_dir
-
         self.config = pd.read_csv(flow_meters_info_csv_path, index_col=0)
         self.config[pd.isna(self.config)] = None
+
+        self.offline = offline
+        self.offline_root_dir = offline_root_dir
+        self.offline_last_timestamps = {
+            signal_id: self.offline_load_last_timestamp(signal_id) if offline else None
+            for signal_id in self.config.index
+        }
 
     def load_train_data(self, signal_id: str):
         control_id = self.config.loc[signal_id]['ID_CONTROL']
@@ -21,10 +25,13 @@ class DataLoader:
 
         return self.load_data(signal_id, control_id, start, end)
 
-    def load_new_data(self, signal_id, current_time, window_in_hours):
+    def load_new_data(self, signal_id, current_time):
+        """
+        Loads the new data for the signal_id from when the training ends until the current_time.
+        """
         control_id = self.config.loc[signal_id]['ID_CONTROL']
 
-        start = current_time - timedelta(hours=window_in_hours)
+        start = self.config.loc[signal_id]['TRAIN_ENDS']
         end = current_time
 
         return self.load_data(signal_id, control_id, start, end)
@@ -79,7 +86,7 @@ class DataLoader:
 
         # Check if the data is enough to cover the requested time range
         if series.index[-1] < pd.to_datetime(date_end):
-            logger.error(f"Error loading data. Not enough data in {file_path} to cover the requested time range")
+            # logger.error(f"Error loading data. Not enough data in {file_path} to cover the requested time range")
             return None
 
         series = series[series.index > date_start]
@@ -87,6 +94,11 @@ class DataLoader:
 
         return series
 
+    def offline_load_last_timestamp(self, signal_id):
+        file_path = f"{self.offline_root_dir}/all_{signal_id}.csv"
+        total_rows = sum(1 for _ in open(file_path)) - 1  # Subtract 1 for the header
+        last_row = pd.read_csv(file_path, skiprows=range(1, total_rows), index_col=0)
+        return last_row.index[0]
 
 if __name__ == '__main__':
     import plotly.graph_objects as go

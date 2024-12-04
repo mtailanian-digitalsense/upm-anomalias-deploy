@@ -1,0 +1,19 @@
+detector:
+  window: 72
+  output_chunk_length: 12
+  detection_quantile: 0.99
+
+signals_to_use:
+  - signal
+  - correlation
+  - control
+
+preprocessor:
+  steps:
+    - type: FilterDowntimeStep
+      threshold: 30
+      filter_on_control: true
+      filter_on_test: true
+    - type: SmoothSignalStep
+      small_smooth_win: 50
+      large_smooth_win: 3000

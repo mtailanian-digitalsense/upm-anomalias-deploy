@@ -2,7 +2,7 @@ import pandas as pd
 import dash
 from dash import dcc, html
 
-from src.constants import INTERFACE_UPDATE_INTERVAL_IN_SECONDS
+from src.constants import UPDATE_DASHBOARD_EVERY_S
 
 
 def get_signal_options(csv_path='train_data.csv'):
@@ -34,14 +34,20 @@ def get_app(signal_options):
             style={'width': '30%'}
         ),
         dcc.Graph(id='live-update-graph'),
-        dcc.Textarea(
-            id='log-console',
-            style={'width': '100%', 'height': '200px'},
-            readOnly=True
-        ),
+        html.Div([
+            dcc.Textarea(
+                id='log-console',
+                style={'width': '69%', 'height': '220px', 'margin-right': '1%'},
+                readOnly=True
+            ),
+            dcc.Textarea(
+                id='second-log-console',
+                style={'width': '30%', 'height': '220px'}
+            )
+        ], style={'display': 'flex', 'width': '100%'}),
         dcc.Interval(
             id='interval-component',
-            interval=INTERFACE_UPDATE_INTERVAL_IN_SECONDS * 1000,  # in milliseconds
+            interval=UPDATE_DASHBOARD_EVERY_S * 1000,  # in milliseconds
             n_intervals=0
         ),
         dcc.Store(id='zoom_info')
